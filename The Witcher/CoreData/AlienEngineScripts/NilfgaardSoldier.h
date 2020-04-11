@@ -4,6 +4,8 @@
 #include "Macros/AlienScripts.h"
 #include "Enemy.h"
 
+class MusicController;
+
 class ALIEN_ENGINE_API NilfgaardSoldier : public Enemy {
 public:
 	enum(NilfgaardType,
@@ -37,6 +39,7 @@ public:
 	float distance = 0.0F;
 	float3 direction;
 	float time_to_rotate = 0.5F;
+	MusicController* m_controller = nullptr;
 };
 
 ALIEN_FACTORY NilfgaardSoldier* CreateNilfgaardSoldier() {

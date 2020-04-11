@@ -2,11 +2,12 @@
 #include "ArrowScript.h"
 #include "PlayerController.h"
 #include "EnemyManager.h"
+#include "MusicController.h"
 
 void NilfgaardSoldier::StartEnemy()
 {
 	type = EnemyType::NILFGAARD_SOLDIER;
-
+	m_controller = (MusicController*)Camera::GetCurrentCamera()->game_object_attached->GetComponentScript("MusicController");
 	Enemy::StartEnemy();
 }
 
@@ -64,6 +65,8 @@ void NilfgaardSoldier::Move(float3 direction)
 		state = Enemy::EnemyState::IDLE;
 		character_ctrl->SetWalkDirection(float3(0.0F, 0.0F, 0.0F));
 		animator->SetFloat("speed", 0.0F);
+		m_controller->is_combat = false;
+		m_controller->has_changed = true;
 	}
 }
 
@@ -131,8 +134,11 @@ void NilfgaardSoldier::UpdateEnemy()
 	switch (state)
 	{
 	case Enemy::EnemyState::IDLE:
-		if (distance < stats.vision_range)
+		if (distance < stats.vision_range) {
 			state = Enemy::EnemyState::MOVE;
+			m_controller->is_combat = true; //Note: This should be placed to every enemy type and not especifically in each enemy
+			m_controller->has_changed = true;
+		}
 		break;
 	case Enemy::EnemyState::MOVE:
 		Move(direction);
@@ -156,6 +162,8 @@ void NilfgaardSoldier::UpdateEnemy()
 		//Ori Ori function sintaxis
 		Invoke([enemy_manager, this]() -> void {enemy_manager->DeleteEnemy(this); }, 5);
 		state = EnemyState::DEAD;
+		m_controller->is_combat = false;
+		m_controller->has_changed = true;
 		break;
 	}
 	case Enemy::EnemyState::DEAD:

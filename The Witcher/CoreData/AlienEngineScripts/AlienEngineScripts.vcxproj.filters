@@ -121,6 +121,9 @@
     <ClCompile Include="Subtitle.cpp">
       <Filter>Scripts</Filter>
     </ClCompile>
+    <ClCompile Include="MusicController.cpp">
+      <Filter>Scripts\Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Macros\AlienScripts.h">
@@ -246,6 +249,9 @@
     <ClInclude Include="Subtitle.h">
       <Filter>Scripts</Filter>
     </ClInclude>
+    <ClInclude Include="MusicController.h">
+      <Filter>Scripts\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scripts">
@@ -274,6 +280,9 @@
     </Filter>
     <Filter Include="Scripts\Objects">
       <UniqueIdentifier>{c5fbad49-d2c4-4e75-89d0-8646dfde0057}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scripts\Audio">
+      <UniqueIdentifier>{6f8a86d9-b143-4233-a002-40011fb11f17}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

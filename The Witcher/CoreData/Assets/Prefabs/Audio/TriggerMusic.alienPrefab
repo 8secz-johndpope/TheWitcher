@@ -1,0 +1,76 @@
+{
+    "Prefab": {
+        "GameObjects": [
+            {
+                "Name": "TriggerMusic",
+                "FamilyNumber": 1,
+                "ID": "15350480820722762766",
+                "ParentID": "0",
+                "Enabled": true,
+                "ParentEnabled": true,
+                "Selected": true,
+                "ParentSelected": false,
+                "IsStatic": false,
+                "IsPrefab": true,
+                "PrefabLocked": false,
+                "Tag": "UnTagged",
+                "PrefabID": "15967318166751233141",
+                "Components": [
+                    {
+                        "Type": 0,
+                        "Position": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "Rotation": [
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "Scale": [
+                            1,
+                            1,
+                            1
+                        ],
+                        "ScaleNegative": false,
+                        "ID": "18362620265851326891"
+                    },
+                    {
+                        "Enabled": true,
+                        "Type": 7,
+                        "Center": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "IsTrigger": true,
+                        "Bouncing": 0.10000000149011612,
+                        "Friction": 0.5,
+                        "AngularFriction": 0.10000000149011612,
+                        "Size": [
+                            26.200000762939453,
+                            9,
+                            3.5999999046325684
+                        ]
+                    },
+                    {
+                        "Type": 29,
+                        "ID": "3344866223474644100",
+                        "ResourceID": "797522162654319486",
+                        "DataName": "TriggerMusicInteractive",
+                        "HasInspector": true,
+                        "Inspector": [
+                            {
+                                "VarType": 14,
+                                "Name": "interactive",
+                                "enumInt": 0
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

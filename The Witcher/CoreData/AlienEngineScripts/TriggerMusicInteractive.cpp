@@ -1,6 +1,7 @@
 #include "TriggerMusicInteractive.h"
 #include "PlayerController.h"
 #include "CameraMovement.h"
+#include "MusicController.h"
 
 TriggerMusicInteractive::TriggerMusicInteractive() : Alien()
 {
@@ -15,19 +16,12 @@ void TriggerMusicInteractive::Start()
 	camera = Camera::GetCurrentCamera()->game_object_attached;
 	cam_script = (CameraMovement*)camera->GetComponentScript("CameraMovement");
 	timer = Time::GetGameTime();
-	emitter = (ComponentAudioEmitter*)this->game_object->GetComponent(ComponentType::A_EMITTER);
-	emitter->SetState("Interactive_Music_Lvl1", "Quiet");
-	emitter->ChangeVolume(0.f);
-	emitter->StartSound();
+	emitter = (ComponentAudioEmitter*)camera->GetComponent(ComponentType::A_EMITTER);
+	m_controller = (MusicController*)camera->GetComponentScript("MusicController");
 }
 
 void TriggerMusicInteractive::Update()
 {
-	if (first_time && Time::GetGameTime() - timer >= 1.f)
-	{
-		emitter->ChangeVolume(0.5f);
-		first_time = false;
-	}
 }
 
 void TriggerMusicInteractive::OnTriggerEnter(ComponentCollider* collider)
@@ -38,6 +32,8 @@ void TriggerMusicInteractive::OnTriggerEnter(ComponentCollider* collider)
 		if (strcmp(collider->game_object_attached->GetTag(), "Player") == 0)
 		{
 			emitter->SetState("Interactive_Music_Lvl1", GetNameByEnum(interactive).c_str());
+			m_controller->last_music = GetNameByEnum(interactive).c_str();
+			m_controller->has_changed = true;
 		}
 		
 	}	
