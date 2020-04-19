@@ -11,8 +11,9 @@ DebugManager::~DebugManager()
 
 void DebugManager::Start()
 {
-	geralt_controller = (PlayerController*)GameObject::FindWithName("Geralt")->GetComponentScript("PlayerController");
-	yennefer_controller = (PlayerController*)GameObject::FindWithName("Yennefer")->GetComponentScript("PlayerController");
+	geralt_controller = GameObject::FindWithName("Geralt")->GetComponent<PlayerController>();
+	yennefer_controller = GameObject::FindWithName("Yennefer")->GetComponent<PlayerController>();
+	main_camera = Camera::GetCurrentCamera();
 }
 
 void DebugManager::Update()
@@ -34,6 +35,18 @@ void DebugManager::Update()
 		if (Input::GetKeyDown(SDL_SCANCODE_D))
 		{
 			
+		}
+		if (Input::GetKeyDown(SDL_SCANCODE_F))
+		{
+			if (Camera::GetCurrentCamera() == main_camera)
+			{
+				ComponentCamera* aux_cam = GameObject::FindWithName("Aux Camera")->GetComponent<ComponentCamera>();
+				if (aux_cam)
+					Camera::SetCurrentCamera(aux_cam);
+			}
+			else
+				Camera::SetCurrentCamera(main_camera);
+
 		}
 		if (Input::GetKeyDown(SDL_SCANCODE_G))
 		{

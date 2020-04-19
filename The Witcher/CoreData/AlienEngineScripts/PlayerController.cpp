@@ -1,14 +1,17 @@
+#include "GameManager.h"
+#include "PlayerManager.h"
 #include "PlayerAttacks.h"
-#include "PlayerController.h"
 #include "EventManager.h"
 #include "RelicBehaviour.h"
 #include "Effect.h"
 #include "CameraMovement.h"
 #include "Enemy.h"
-#include "GameManager.h"
+
 #include "../../ComponentDeformableMesh.h"
+
 #include "UI_Char_Frame.h"
 #include "InGame_UI.h"
+#include "PlayerController.h"
 
 PlayerController::PlayerController() : Alien()
 {
@@ -20,21 +23,25 @@ PlayerController::~PlayerController()
 
 void PlayerController::Start()
 {
-	animator = (ComponentAnimator*)GetComponent(ComponentType::ANIMATOR);
-	controller = (ComponentCharacterController*)GetComponent(ComponentType::CHARACTER_CONTROLLER);
-	attacks = (PlayerAttacks*)GetComponentScript("PlayerAttacks");
+	animator = GetComponent<ComponentAnimator>();
+	controller = GetComponent<ComponentCharacterController>();
+	attacks = GetComponent<PlayerAttacks>();
 
-	audio = (ComponentAudioEmitter*)GetComponent(ComponentType::A_EMITTER);
+	audio = GetComponent<ComponentAudioEmitter>();
 
 	camera = Camera::GetCurrentCamera();
 
-	ComponentDeformableMesh** vec = nullptr;
-	uint size = game_object->GetChild("Meshes")->GetComponentsInChildren(ComponentType::DEFORMABLE_MESH, (Component***)&vec, false);
+	player_data.stats.insert(std::pair("Health", Stat("Health", 100.0f)));
+	player_data.stats.insert(std::pair("Strength", Stat("Strength", 10.0f)));
+	player_data.stats.insert(std::pair("Chaos", Stat("Chaos", 150.0f)));
+	player_data.stats.insert(std::pair("Attack_Speed", Stat("Attack_Speed", 1.0f)));
+
+	auto meshes = game_object->GetChild("Meshes")->GetComponentsInChildren<ComponentDeformableMesh>();
 
 	max_aabb.SetNegativeInfinity();
 	AABB new_section;
-	for (uint i = 0u; i < size; ++i) {
-		new_section = vec[i]->GetGlobalAABB();
+	for (auto i = meshes.begin(); i != meshes.end(); ++i) {
+		new_section = (*i)->GetGlobalAABB();
 		LOG("AABB: %.2f %.2f %.2f, %.2f %.2f %.2f", new_section.minPoint.x, new_section.minPoint.y, new_section.minPoint.z, new_section.maxPoint.x, new_section.maxPoint.y, new_section.maxPoint.z);
 		max_aabb.minPoint = { 
 			Maths::Min(new_section.minPoint.x, max_aabb.minPoint.x), Maths::Min(new_section.minPoint.y, max_aabb.minPoint.y),Maths::Min(new_section.minPoint.z, max_aabb.minPoint.z) 
@@ -46,17 +53,13 @@ void PlayerController::Start()
 	max_aabb.minPoint -= transform->GetGlobalPosition();
 	max_aabb.maxPoint -= transform->GetGlobalPosition();
 	LOG("MAX AABB: %.2f %.2f %.2f, %.2f %.2f %.2f", max_aabb.minPoint.x, max_aabb.minPoint.y, max_aabb.minPoint.z, max_aabb.maxPoint.x, max_aabb.maxPoint.y, max_aabb.maxPoint.z);
-	GameObject::FreeArrayMemory((void***)&vec);
 
-	ComponentParticleSystem** p_sys = nullptr;
-	size = game_object->GetChild("Particles")->GetComponentsInChildren(ComponentType::PARTICLES, (Component***)&p_sys, false);
+	auto v_particles = game_object->GetChild("Particles")->GetComponentsInChildren<ComponentParticleSystem>();
 
-	for (uint i = 0u; i < size; ++i) {
-		particles.insert(std::pair(p_sys[i]->game_object_attached->GetName(), p_sys[i]->game_object_attached));
-		p_sys[i]->game_object_attached->SetEnable(false);
+	for (auto i = v_particles.begin(); i != v_particles.end(); ++i) {
+		particles.insert(std::pair((*i)->game_object_attached->GetName(), (*i)->game_object_attached));
+		(*i)->game_object_attached->SetEnable(false);
 	}
-
-	GameObject::FreeArrayMemory((void***)&p_sys);
 
 	controller->SetRotation(Quat::identity());
 
@@ -77,6 +80,7 @@ void PlayerController::Start()
 		keyboard_light_attack = SDL_SCANCODE_V;
 		keyboard_heavy_attack = SDL_SCANCODE_B;
 		keyboard_revive = SDL_SCANCODE_C;
+		keyboard_ultimate = SDL_SCANCODE_X;
 	}
 	else if (controller_index == 2) {
 		keyboard_move_up = SDL_SCANCODE_I;
@@ -88,6 +92,7 @@ void PlayerController::Start()
 		keyboard_light_attack = SDL_SCANCODE_RCTRL;
 		keyboard_heavy_attack = SDL_SCANCODE_RIGHTBRACKET;
 		keyboard_revive = SDL_SCANCODE_M;
+		keyboard_ultimate = SDL_SCANCODE_COMMA;
 	}
 }
 
@@ -96,6 +101,15 @@ void PlayerController::Update()
 	float2 joystickInput = float2(Input::GetControllerHoritzontalLeftAxis(controller_index), Input::GetControllerVerticalLeftAxis(controller_index));
 
 	animator->SetBool("movement_input", joystickInput.Length() > stick_threshold ? true : false);
+
+	if (Input::GetControllerButtonDown(controller_index, controller_ultimate)
+		|| Input::GetKeyDown(keyboard_ultimate)) {
+		GameManager::manager->player_manager->ultimate_buttons_pressed++;
+	}
+	else if (Input::GetControllerButtonUp(controller_index, controller_ultimate)
+		|| Input::GetKeyUp(keyboard_ultimate)) {
+		GameManager::manager->player_manager->ultimate_buttons_pressed--;
+	}
 
 	if (joystickInput.Length() > 0) {
 		if (CheckBoundaries(joystickInput))
@@ -149,12 +163,15 @@ void PlayerController::Update()
 			state = PlayerState::BASIC_ATTACK;
 			audio->StartSound("Hit_Sword");
 			can_move = false;
+
+			//GameManager::manager->Rumbler(RumblerType::INCREASING, controller_index, 5);
 		}
 		/*else if (Input::GetControllerButtonDown(controller_index, controller_heavy_attack)
 			|| Input::GetKeyDown(keyboard_heavy_attack)) {
 			state = PlayerState::BASIC_ATTACK;
 			attacks->StartAttack(PlayerAttacks::AttackType::HEAVY);
 			audio->StartSound("Hit_Sword");
+			GameManager::manager->Rumbler(RumblerType::HEAVY_ATTACK, controller_index);
 			can_move = false;
 		}*/
 
@@ -221,6 +238,7 @@ void PlayerController::Update()
 			attacks->StartAttack(PlayerAttacks::AttackType::HEAVY);
 			state = PlayerState::BASIC_ATTACK;
 			audio->StartSound("Hit_Sword");
+			GameManager::manager->Rumbler(RumblerType::HEAVY_ATTACK, controller_index);
 			controller->SetWalkDirection(float3::zero());
 			can_move = false;
 		}*/
@@ -340,6 +358,36 @@ void PlayerController::Update()
 			state = PlayerState::RUNNING;
 	}
 	player_data.currentSpeed = 0;
+
+
+	//Effects-----------------------------
+	for (auto it = effects.begin(); it != effects.end();)
+	{
+		if ((*it)->UpdateEffect() && (*it)->ticks_time > 0)
+		{
+			for (auto it_stats = player_data.stats.begin(); it_stats != player_data.stats.end(); ++it_stats)
+			{
+				it_stats->second.ModifyCurrentStat((*it));
+
+				//Temporal solution
+				if (it_stats->first == "Health")
+				{
+					HUD->GetComponent<UI_Char_Frame>()->LifeChange(player_data.stats["Health"].GetValue(), player_data.stats["Health"].GetMaxValue());
+					if (player_data.stats["Health"].GetValue() == 0)
+						Die();
+				}
+			}
+			if (particles[(*it)->name])
+				particles[(*it)->name]->SetEnable(true);
+		}
+		if((*it)->to_delete)
+		{
+			delete (*it);
+			it = effects.erase(it);
+			continue;
+		}
+		++it;
+	}
 }
 
 bool PlayerController::AnyKeyboardInput()
@@ -372,11 +420,11 @@ void PlayerController::HandleMovement(const float2& joystickInput)
 
 	if (state == PlayerState::DASHING)
 	{
-		controller->SetWalkDirection(transform->forward.Normalized() * player_data.movementSpeed * player_data.dash_power);
+		controller->SetWalkDirection(transform->forward.Normalized() * player_data.movementSpeed * player_data.dash_power / Time::GetScaleTime());
 	}
 	else
 	{
-		controller->SetWalkDirection(vector * player_data.currentSpeed);
+		controller->SetWalkDirection(vector * player_data.currentSpeed / Time::GetScaleTime());
 	}
 
 	animator->SetFloat("speed", Maths::Abs(player_data.currentSpeed));
@@ -421,12 +469,8 @@ void PlayerController::Die()
 	animator->PlayState("Death");
 	state = PlayerState::DEAD;
 	animator->SetBool("dead", true);
-	Game_Manager->event_manager->OnPlayerDead(this);
+	GameManager::manager->event_manager->OnPlayerDead(this);
 	controller->SetWalkDirection(float3::zero());
-	if (players_dead.size() > 1)
-	{
-		((InGame_UI*)GameObject::FindWithName("UI_InGame")->GetComponentScript("InGame_UI"))->YouDied();
-	}
 }
 
 void PlayerController::Revive()
@@ -434,9 +478,10 @@ void PlayerController::Revive()
 	state = PlayerState::IDLE;
 	animator->SetBool("dead", false);
 	animator->PlayState("Revive");
-	Game_Manager->event_manager->OnPlayerRevive(this);
-	player_data.health.IncreaseStat(player_data.health.max_value * 0.5);
-	((UI_Char_Frame*)HUD->GetComponentScript("UI_Char_Frame"))->LifeChange(player_data.health.current_value, player_data.health.max_value);
+	GameManager::manager->event_manager->OnPlayerRevive(this);
+	player_data.stats["Health"].IncreaseStat(player_data.stats["Health"].GetMaxValue() * 0.5);
+	HUD->GetComponent<UI_Char_Frame>()->LifeChange(player_data.stats["Health"].GetValue(), player_data.stats["Health"].GetMaxValue());
+	GameManager::manager->Rumbler(RumblerType::REVIVE, controller_index);
 }
 
 void PlayerController::ActionRevive()
@@ -449,9 +494,9 @@ void PlayerController::ActionRevive()
 
 void PlayerController::ReceiveDamage(float value)
 {
-	player_data.health.DecreaseStat(value);
-	((UI_Char_Frame*)HUD->GetComponentScript("UI_Char_Frame"))->LifeChange(player_data.health.current_value, player_data.health.max_value);
-	if (player_data.health.current_value == 0)
+	player_data.stats["Health"].DecreaseStat(value);
+	HUD->GetComponent<UI_Char_Frame>()->LifeChange(player_data.stats["Health"].GetValue(), player_data.stats["Health"].GetMaxValue());
+	if (player_data.stats["Health"].GetValue() == 0)
 		Die();
 
 	if (state != PlayerState::HIT && state != PlayerState::DASHING && state != PlayerState::DEAD) {
@@ -459,8 +504,9 @@ void PlayerController::ReceiveDamage(float value)
 		attacks->CancelAttack();
 		state = PlayerState::HIT;
 		controller->SetWalkDirection(float3::zero());
-	}
-	
+	}	
+
+	GameManager::manager->Rumbler(RumblerType::RECEIVE_HIT, controller_index);
 }
 
 void PlayerController::PickUpRelic(Relic* _relic)
@@ -477,11 +523,17 @@ void PlayerController::AddEffect(Effect* _effect)
 {
 	effects.push_back(_effect);
 
-	//RecalculateStats(); 
-
 	if (dynamic_cast<AttackEffect*>(_effect) != nullptr)
 	{
-		attacks->OnAddAttackEffect(((AttackEffect*)_effect)->GetAttackIdentifier());
+		attacks->OnAddAttackEffect(((AttackEffect*)_effect));
+	}
+	else
+	{
+		for (auto it = player_data.stats.begin(); it != player_data.stats.end(); ++it)
+		{
+			if(_effect->AffectsStat(it->second.name) && _effect->ticks_time == 0)
+				it->second.ApplyEffect(_effect);
+		}
 	}
 }
 
@@ -502,12 +554,12 @@ bool PlayerController::CheckBoundaries(const float2& joystickInput)
 
 	if (abs(joystickInput.x) >= stick_threshold || abs(joystickInput.y) >= stick_threshold)
 	{
-		speed = (player_data.movementSpeed * joystickIntensity * Time::GetDT());
+		speed = (player_data.movementSpeed * joystickIntensity * Time::GetDT() / Time::GetScaleTime());
 	}
 
 	if (state == PlayerState::DASHING)
 	{
-		next_pos = transform->GetGlobalPosition() + transform->forward.Normalized() * player_data.movementSpeed * player_data.dash_power * Time::GetDT();
+		next_pos = transform->GetGlobalPosition() + transform->forward.Normalized() * player_data.movementSpeed * player_data.dash_power * Time::GetDT() / Time::GetScaleTime();
 	}
 	else
 	{
@@ -522,12 +574,12 @@ bool PlayerController::CheckBoundaries(const float2& joystickInput)
 	Frustum fake_frustum = camera->frustum;
 	fake_frustum.pos = next_cam_pos;
 
-	CameraMovement* cam = (CameraMovement*)camera->game_object_attached->GetComponentScript("CameraMovement");
+	CameraMovement* cam = (CameraMovement*)camera->game_object_attached->GetComponent<CameraMovement>();
 	for (int i = 0; i < cam->players.size(); ++i)
 	{
 		if (cam->players[i] != this->game_object)
 		{
-			PlayerController* p = (PlayerController*)cam->players[i]->GetComponentScript("PlayerController");
+			PlayerController* p = cam->players[i]->GetComponent<PlayerController>();
 			if (p != nullptr) {
 				AABB p_tmp = p->max_aabb;
 				p_tmp.minPoint += cam->players[i]->transform->GetGlobalPosition();
@@ -552,32 +604,17 @@ bool PlayerController::CheckBoundaries(const float2& joystickInput)
 	}
 }
 
-void PlayerController::OnDrawGizmos()
+void PlayerController::OnDrawGizmosSelected()
 {
 	Gizmos::DrawWireSphere(transform->GetGlobalPosition(), revive_range, Color::Cyan()); //snap_range
 }
 
-void PlayerController::OnPlayerDead(PlayerController* player_dead)
-{
-	players_dead.push_back(player_dead);
-}
-
-void PlayerController::OnPlayerRevived(PlayerController* player_dead)
-{
-	for (std::vector<PlayerController*>::iterator it = players_dead.begin(); it != players_dead.end(); ++it) {
-		if ((*it) == player_dead) {
-			players_dead.erase(it);
-			break;
-		}
-	}
-}
-
 bool PlayerController::CheckForPossibleRevive()
 {
-	for (int i = 0; i < players_dead.size(); ++i) {
-		float distance = this->transform->GetGlobalPosition().Distance(players_dead[i]->transform->GetGlobalPosition());
+	for (int i = 0; i < GameManager::manager->player_manager->players_dead.size(); ++i) {
+		float distance = this->transform->GetGlobalPosition().Distance(GameManager::manager->player_manager->players_dead[i]->transform->GetGlobalPosition());
 		if (distance <= revive_range) {
-			player_being_revived = players_dead[i];
+			player_being_revived = GameManager::manager->player_manager->players_dead[i];
 			return true;
 		}
 	}
@@ -593,7 +630,7 @@ void PlayerController::OnHit(Enemy* enemy, float dmg_dealt)
 			AttackEffect* a_effect = (AttackEffect*)(*it);
 			if (a_effect->GetAttackIdentifier() == attacks->GetCurrentAttack()->info.name)
 			{
-				a_effect->OnHit(enemy);
+				a_effect->OnHit(enemy, attacks->GetCurrentAttack()->info.name.size());
 			}
 		}
 	}
@@ -609,17 +646,27 @@ void PlayerController::OnTriggerEnter(ComponentCollider* col)
 	if (!godmode)
 	{
 		if (strcmp(col->game_object_attached->GetTag(), "EnemyAttack") == 0 && state != PlayerState::DEAD) {
-			Alien** alien = nullptr;
-			uint size = col->game_object_attached->parent->GetAllComponentsScript(&alien);
-			for (int i = 0; i < size; ++i) {
-				Enemy* enemy = dynamic_cast<Enemy*>(alien[i]);
+
+			auto comps = col->game_object_attached->parent->GetComponents<Alien>();
+
+			for (auto i = comps.begin(); i != comps.end(); ++i) {
+				Enemy* enemy = dynamic_cast<Enemy*>(*i);
 				if (enemy) {
-					ReceiveDamage(enemy->stats.damage);
-					GameObject::FreeArrayMemory((void***)&alien);
+					ReceiveDamage(enemy->stats["Damage"].GetValue());
 					return;
 				}
 			}
-			GameObject::FreeArrayMemory((void***)&alien);
 		}
 	}
 }
+
+void PlayerController::OnUltimateActivation(float value)
+{
+	//animator->IncreaseAllStateSpeeds(2.0f);
+}
+
+void PlayerController::OnUltimateDeactivation(float value)
+{
+
+	//animator->DecreaseAllStateSpeeds(2.0f);
+} 

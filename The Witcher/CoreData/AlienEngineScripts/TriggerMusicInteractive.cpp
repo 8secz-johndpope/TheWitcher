@@ -14,10 +14,10 @@ TriggerMusicInteractive::~TriggerMusicInteractive()
 void TriggerMusicInteractive::Start()
 {	
 	camera = Camera::GetCurrentCamera()->game_object_attached;
-	cam_script = (CameraMovement*)camera->GetComponentScript("CameraMovement");
+	cam_script = camera->GetComponent<CameraMovement>();
 	timer = Time::GetGameTime();
-	emitter = (ComponentAudioEmitter*)camera->GetComponent(ComponentType::A_EMITTER);
-	m_controller = (MusicController*)camera->GetComponentScript("MusicController");
+	emitter = camera->GetComponent<ComponentAudioEmitter>;
+	m_controller = camera->GetComponent<MusicController>;
 }
 
 void TriggerMusicInteractive::Update()
