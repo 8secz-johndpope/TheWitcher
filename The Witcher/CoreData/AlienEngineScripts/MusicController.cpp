@@ -10,7 +10,7 @@ MusicController::~MusicController()
 
 void MusicController::Start()
 {
-	emitter = (ComponentAudioEmitter*)this->GetComponent(ComponentType::A_EMITTER);
+	emitter = this->GetComponent<ComponentAudioEmitter>();
 	emitter->SetState("Interactive_Music_Lvl1", "Quiet");
 }
 

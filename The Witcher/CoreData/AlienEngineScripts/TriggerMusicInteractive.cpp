@@ -16,8 +16,8 @@ void TriggerMusicInteractive::Start()
 	camera = Camera::GetCurrentCamera()->game_object_attached;
 	cam_script = camera->GetComponent<CameraMovement>();
 	timer = Time::GetGameTime();
-	emitter = camera->GetComponent<ComponentAudioEmitter>;
-	m_controller = camera->GetComponent<MusicController>;
+	emitter = camera->GetComponent<ComponentAudioEmitter>();
+	m_controller = camera->GetComponent<MusicController>();
 }
 
 void TriggerMusicInteractive::Update()
@@ -44,6 +44,9 @@ std::string TriggerMusicInteractive::GetNameByEnum(Music mat)
 	std::string name;
 	switch (mat)
 	{
+	case Music::NONE:
+		return music_state;
+		break;
 	case Music::COMBAT:
 		return name = "Combat";
 		break;

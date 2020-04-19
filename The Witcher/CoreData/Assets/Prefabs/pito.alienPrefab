@@ -1,0 +1,63 @@
+{
+    "Prefab": {
+        "GameObjects": [
+            {
+                "Name": "pito",
+                "FamilyNumber": 1,
+                "ID": "7674769212213194615",
+                "ParentID": "16225531546526656290",
+                "Enabled": true,
+                "ParentEnabled": true,
+                "Selected": false,
+                "ParentSelected": false,
+                "IsStatic": false,
+                "IsPrefab": true,
+                "PrefabLocked": false,
+                "Tag": "UnTagged",
+                "PrefabID": "11285083703110945298",
+                "Components": [
+                    {
+                        "Type": 0,
+                        "Position": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "Rotation": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "Scale": [
+                            1,
+                            1,
+                            1
+                        ],
+                        "ScaleNegative": false,
+                        "ID": "2259991897696997779"
+                    },
+                    {
+                        "Type": 29,
+                        "ID": "9816660489894993366",
+                        "ResourceID": "797522162654319486",
+                        "DataName": "TriggerMusicInteractive",
+                        "HasInspector": true,
+                        "Inspector": [
+                            {
+                                "VarType": 14,
+                                "Name": "interactive",
+                                "enumInt": 0
+                            },
+                            {
+                                "VarType": 6,
+                                "Name": "music_state",
+                                "string": "Pito"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
