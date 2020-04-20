@@ -9,7 +9,6 @@ class MusicController;
 class ALIEN_ENGINE_API TriggerMusicInteractive : public Alien {
 public:
 	enum (Music,
-		NONE,
 		QUIET,
 		COMBAT,
 		NORMAL,
@@ -24,7 +23,7 @@ public:
 	std::string GetNameByEnum(Music mat);
 
 public:
-	Music interactive = Music::NONE;
+	Music interactive = Music::QUIET;
 	GameObject* camera = nullptr;
 	CameraMovement* cam_script = nullptr;
 	ComponentAudioEmitter* emitter = nullptr;
@@ -34,14 +33,10 @@ public:
 	int player_counter = 0;
 	float timer = 0.f;
 	bool first_time = true;
-	std::string music_state;
 };
 ALIEN_FACTORY TriggerMusicInteractive* CreateTriggerMusicInteractive() {
 	TriggerMusicInteractive* alien = new TriggerMusicInteractive();
 	// To show in inspector here
 	SHOW_IN_INSPECTOR_AS_ENUM(TriggerMusicInteractive::Music, alien->interactive);
-	SHOW_TOOLTIP("Pick NONE to pass the string whatever state you like.");
-	SHOW_IN_INSPECTOR_AS_STRING(alien->music_state);
-	
 	return alien;
 }
