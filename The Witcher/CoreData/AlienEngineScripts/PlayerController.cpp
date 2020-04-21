@@ -60,8 +60,8 @@ void PlayerController::Start()
 		particles.insert(std::pair((*it)->GetName(), (*it)));
 		(*it)->SetEnable(false);
 	}
-
 	//controller->SetRotation(Quat::identity());
+
 
 
 	if (controller_index == 1) {
