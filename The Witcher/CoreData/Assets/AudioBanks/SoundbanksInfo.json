@@ -716,11 +716,6 @@
     "Path": "Music.bnk",
     "IncludedEvents": [
      {
-      "Id": "1256202815",
-      "Name": "Play",
-      "ObjectPath": "\\Events\\Default Work Unit\\Play"
-     },
-     {
       "Id": "2011049715",
       "Name": "Play_Bard_Music",
       "ObjectPath": "\\Events\\Default Work Unit\\Music\\Play_Bard_Music"
@@ -758,12 +753,6 @@
       "Language": "SFX",
       "ShortName": "music_calm_green_lake_serenade.wav",
       "Path": "SFX\\music_calm_green_lake_serenade_F17FB28C.wem"
-     },
-     {
-      "Id": "236180510",
-      "Language": "SFX",
-      "ShortName": "Birds_env.wav",
-      "Path": "SFX\\Birds_env_1C9C67B2.wem"
      },
      {
       "Id": "247361237",

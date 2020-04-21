@@ -16,7 +16,7 @@ void TriggerMusicInteractive::Start()
 	camera = Camera::GetCurrentCamera()->game_object_attached;
 	cam_script = camera->GetComponent<CameraMovement>();
 	timer = Time::GetGameTime();
-	emitter = game_object->GetComponent<ComponentAudioEmitter>();
+	emitter = camera->GetComponent<ComponentAudioEmitter>();
 	m_controller = camera->GetComponent<MusicController>();
 }
 
