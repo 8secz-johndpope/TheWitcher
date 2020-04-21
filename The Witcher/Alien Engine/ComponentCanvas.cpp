@@ -41,41 +41,9 @@ bool ComponentCanvas::DrawInspector()
 	ImGui::PopID();
 	ImGui::SameLine();
 
-	if (ImGui::CollapsingHeader("Canvas", &not_destroy, ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("Canvas", &not_destroy))
 	{
 		ImGui::Spacing();
-
-		ImGui::Text("Canvas World");
-
-		ImGui::SameLine();
-		ImGui::Checkbox("##isWorld", &isWorld);
-		ImGui::Spacing(); ImGui::Spacing();
-
-		if (isWorld)
-		{
-			ImGui::Text("BillBoard Type");
-			ImGui::SameLine();
-			static int type = 0;
-			ImGui::Combo("##BillBoardType", &type, "Screen\0World\0Axis\0");
-			switch (BillboardType(type))
-			{
-			case BillboardType::SCREEN: {
-				bbtype = BillboardType::SCREEN;
-				break; }
-			case BillboardType::WORLD: {
-				bbtype = BillboardType::WORLD;
-				break; }
-			case BillboardType::AXIS: {
-				bbtype = BillboardType::AXIS;
-				break; }
-			default: {
-				break; }
-			}
-
-
-			ImGui::Spacing(); ImGui::Spacing();
-		}
-
 		ImGui::Separator();
 		ImGui::Spacing();
 	}
@@ -86,22 +54,13 @@ bool ComponentCanvas::DrawInspector()
 void ComponentCanvas::SaveComponent(JSONArraypack* to_save)
 {
 	to_save->SetBoolean("Enabled", enabled);
-	to_save->SetBoolean("isWorld", isWorld);
 	to_save->SetNumber("Type", (int)type);
-	to_save->SetNumber("BBType", (int)bbtype);
 	
 }
 
 void ComponentCanvas::LoadComponent(JSONArraypack* to_load)
 {
 	enabled = to_load->GetBoolean("Enabled");
-	try {
-		isWorld = to_load->GetBoolean("isWorld");
-		bbtype = (BillboardType)(int)to_load->GetNumber("BBType");
-	}
-	catch (...) {
-		// f
-	}
 }
 
 void ComponentCanvas::Draw()

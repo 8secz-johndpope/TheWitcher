@@ -1,9 +1,7 @@
-#include "Application.h"
-#include "ComponentPhysics.h"
 #include "ComponentSphereCollider.h"
+#include "ComponentRigidBody.h"
 #include "ComponentTransform.h"
 #include "ComponentMesh.h"
-#include "ResourceMesh.h"
 #include "GameObject.h"
 #include "imgui/imgui.h"
 #include "mmgr/mmgr.h"
@@ -13,60 +11,69 @@ ComponentSphereCollider::ComponentSphereCollider(GameObject* go) :ComponentColli
 	name.assign("Sphere Collider");
 	type = ComponentType::SPHERE_COLLIDER;
 
-	InitializeRadius();
-	shape = App->physx->CreateShape(PxSphereGeometry(CalculateRadius()), *material);
-	App->SendAlienEvent(this, AlienEventType::COLLIDER_ADDED);
-	InitCollider();
-}
-void ComponentSphereCollider::InitializeRadius()
-{
-	radius = GetLocalMeshAabbSize().MaxElement() * 0.5f;
+	// More useful if its called externaly
+	Init();
 }
 
-const float ComponentSphereCollider::CalculateRadius()
+void ComponentSphereCollider::SetRadius(float value)
 {
-	return transform->GetGlobalScale().MaxElement() * radius;
+	if (value != radius)
+	{
+		radius = value;
+		UpdateShape();
+	}
 }
 
-PxShape* ComponentSphereCollider::RecreateSphereShape()
+
+void ComponentSphereCollider::CreateDefaultShape()
 {
-	if (!shape)
-		return nullptr;
+	ComponentMesh* mesh = game_object_attached->GetComponent<ComponentMesh>();
 
-	BeginUpdateShape();
-	PxTransform trans = shape->getLocalPose();
-	float _radius = CalculateRadius();
-	float3 rad_rot = float3(rotation.x, rotation.y, rotation.z) * DEGTORAD;
-	trans.p = F3_TO_PXVEC3(center.Mul(physics->scale));
-	trans.q = QUAT_TO_PXQUAT(Quat::FromEulerXYZ(rad_rot.x, rad_rot.y, rad_rot.z));
-	shape->setLocalPose(trans);
-	shape->setGeometry(PxSphereGeometry(_radius));
-	EndUpdateShape();
+	if (mesh != nullptr)
+	{
+		center = mesh->local_aabb.CenterPoint();
+		radius = mesh->local_aabb.Size().MaxElement() * 0.5f;
+	}
+	else
+	{
+		center = float3::zero();
+		radius = 0.5f;
+	}
 
-	return shape;
+	UpdateShape();
 }
 
-void ComponentSphereCollider::ScaleChanged()
+void ComponentSphereCollider::UpdateShape()
 {
-	RecreateSphereShape();
+	if (shape != nullptr)
+	{
+		delete shape;
+	}
+
+	final_radius = radius * transform->GetGlobalScale().Abs().MaxElement();
+	final_center = center.Mul(final_radius);
+
+	shape = new btSphereShape(final_radius);
+
+	if (aux_body)
+		aux_body->setCollisionShape(shape);
+	if (detector)
+		detector->setCollisionShape(shape);
+
+	if (rigid_body != nullptr)  rigid_body->UpdateCollider();
 }
 
 void ComponentSphereCollider::DrawSpecificInspector()
 {
-	ImGui::Title("Radius", 1);	if (ImGui::DragFloat("##radius", &radius, 0.01f, 0.01f, FLT_MAX)) { RecreateSphereShape(); }
+	float current_radius = radius;
+	ImGui::Title("Radius", 1);	ImGui::DragFloat("##radius", &current_radius, 0.1f, 0.01f, FLT_MAX);
+	SetRadius(current_radius);
 }
 
 void ComponentSphereCollider::Reset()
 {
 	ComponentCollider::Reset();
-	InitializeRadius();
-	RecreateSphereShape();
-}
-
-void ComponentSphereCollider::SetRadius(float radius)
-{
-	this->radius = radius;
-	RecreateSphereShape();
+	SetRadius(0.5f);
 }
 
 void ComponentSphereCollider::SaveComponent(JSONArraypack* to_save)
@@ -78,15 +85,6 @@ void ComponentSphereCollider::SaveComponent(JSONArraypack* to_save)
 void ComponentSphereCollider::LoadComponent(JSONArraypack* to_load)
 {
 	ComponentCollider::LoadComponent(to_load);
-	radius = (to_load->GetNumber("Radius"));
-	RecreateSphereShape();
+	SetRadius(to_load->GetNumber("Radius"));
 }
 
-void ComponentSphereCollider::Clone(Component* clone)
-{
-	ComponentSphereCollider* sphere_clone = (ComponentSphereCollider*)clone;
-	sphere_clone->radius = radius;
-	sphere_clone->center = center;
-	sphere_clone->rotation = rotation;
-	sphere_clone->RecreateSphereShape();
-}

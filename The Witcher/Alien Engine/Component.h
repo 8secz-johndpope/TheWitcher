@@ -58,7 +58,6 @@ class __declspec(dllexport) Component {
 	friend class ComponentMaterial;
 	friend class ComponentCanvas;
 	friend class ComponentUI;
-	friend class ComponentPhysics;
 	friend class ComponentCharacterController;
 	friend class ComponentRigidBody;
 	friend class ComponentCollider;
@@ -71,7 +70,6 @@ class __declspec(dllexport) Component {
 	friend class CompZ;
 	friend class PanelInspector;
 	friend class ModuleObjects;
-	friend class ModulePhysX;
 	friend class ModuleUI;
 public:
 	Component(GameObject* attach);
@@ -79,8 +77,6 @@ public:
 
 	bool IsEnabled();
 	void SetEnable(bool enable);
-	void Destroy();
-
 public:
 	GameObject* game_object_attached = nullptr;
 
@@ -126,5 +122,4 @@ protected:
 	u64 ID = 0;
 	bool not_destroy = true;
 	const char* name = "";
-	bool serialize = true;
 };

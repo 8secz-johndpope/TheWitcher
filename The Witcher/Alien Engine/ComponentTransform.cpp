@@ -60,7 +60,6 @@ ComponentTransform::~ComponentTransform()
 
 void ComponentTransform::SetLocalPosition(const float3& new_local_pos)
 {
-	OPTICK_EVENT();
 	local_position = new_local_pos;
 
 	RecalculateTransform();
@@ -68,7 +67,6 @@ void ComponentTransform::SetLocalPosition(const float3& new_local_pos)
 
 void ComponentTransform::SetLocalPosition(const float& x, const float& y, const float& z)
 {
-	OPTICK_EVENT();
 	local_position.x = x;
 	local_position.y = y;
 	local_position.z = z;
@@ -78,7 +76,6 @@ void ComponentTransform::SetLocalPosition(const float& x, const float& y, const 
 
 void ComponentTransform::SetGlobalPosition(const float3& pos)
 {
-	OPTICK_EVENT();
 	global_transformation.SetTranslatePart(pos);
 	GameObject* parent = game_object_attached->parent;
 
@@ -107,7 +104,6 @@ void ComponentTransform::SetGlobalPosition(const float3& pos)
 
 void ComponentTransform::SetGlobalRotation(Quat rotation)
 {
-	OPTICK_EVENT();
 	global_transformation = float4x4::FromTRS(global_transformation.TranslatePart(), rotation, global_transformation.GetScale());
 	GameObject* parent = game_object_attached->parent;
 
@@ -147,7 +143,6 @@ const float3 ComponentTransform::GetGlobalPosition() const
 
 void ComponentTransform::SetLocalScale(const float3& new_local_scale)
 {
-	OPTICK_EVENT();
 	local_scale = new_local_scale;
 
 	LookScale();
@@ -157,7 +152,6 @@ void ComponentTransform::SetLocalScale(const float3& new_local_scale)
 
 void ComponentTransform::SetLocalScale(const float& x, const float& y, const float& z)
 {
-	OPTICK_EVENT();
 	local_scale.x = x;
 	local_scale.y = y;
 	local_scale.z = z;
@@ -169,7 +163,6 @@ void ComponentTransform::SetLocalScale(const float& x, const float& y, const flo
 
 void ComponentTransform::SetLocalTransform(const float3& position, const Quat& rotation, const float3& scale)
 {
-	OPTICK_EVENT();
 	local_position = position;
 	local_rotation = rotation;
 	local_scale = scale;
@@ -208,7 +201,6 @@ const float3 ComponentTransform::GetGlobalScale() const
 
 void ComponentTransform::SetLocalRotation(const Quat& new_local_rotation)
 {
-	OPTICK_EVENT();
 	local_rotation.Set(new_local_rotation.x, new_local_rotation.y, new_local_rotation.z, new_local_rotation.w);
 
 	euler_rotation = local_rotation.ToEulerXYZ();
@@ -221,7 +213,6 @@ void ComponentTransform::SetLocalRotation(const Quat& new_local_rotation)
 
 void ComponentTransform::SetLocalRotation(const float& x, const float& y, const float& z, const float& angle)
 {
-	OPTICK_EVENT();
 	local_rotation.x = x;
 	local_rotation.y = y;
 	local_rotation.z = z;
@@ -263,12 +254,7 @@ void ComponentTransform::RecalculateTransform()
 	if (game_object_attached == nullptr)
 		return;
 
-	float3 final_scale = float3(
-		(local_scale.x != 0.f) ? local_scale.x : 0.001f,
-		(local_scale.y != 0.f) ? local_scale.y : 0.001f,
-		(local_scale.z != 0.f) ? local_scale.z : 0.001f);
-
-	local_transformation = float4x4::FromTRS(local_position, local_rotation, final_scale);
+	local_transformation = float4x4::FromTRS(local_position, local_rotation, local_scale);
 
 	if (game_object_attached->parent != nullptr) 
 	{

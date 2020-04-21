@@ -6,7 +6,7 @@
         "NumBones": 0,
         "NumAnimations": 0,
         "Animations": [],
-        "NumMaterials": 0,
+        "NumMaterials": 1,
         "PathMeshes": [
             "Library\/Meshes\/6386621105331610256.alienMesh",
             "Library\/Meshes\/6798597091047143381.alienMesh",
@@ -19,7 +19,9 @@
         ],
         "PathAnimations": [],
         "PathBones": [],
-        "PathMaterials": []
+        "PathMaterials": [
+            "Library\/Materials\/15342053856294683695.material"
+        ]
     },
     "Nodes": [
         {

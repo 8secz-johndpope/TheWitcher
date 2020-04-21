@@ -41,7 +41,7 @@ bool ComponentMaterial::DrawInspector()
 
 	//InspectorShaderProperties();
 
-	if (ImGui::CollapsingHeader("Material", &not_destroy))
+	if (ImGui::CollapsingHeader("Material", &not_destroy, ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		material->DisplayMaterialOnInspector();
 		RightClickMenu("Material");

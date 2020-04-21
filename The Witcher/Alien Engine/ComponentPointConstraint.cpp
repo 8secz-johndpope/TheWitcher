@@ -1,4 +1,7 @@
 #include "Application.h"
+#include "BulletCollision\CollisionDispatch\btGhostObject.h"
+#include <BulletDynamics\Character\btKinematicCharacterController.h>
+#include "ModulePhysics.h"
 #include "ComponentCollider.h"
 #include "ComponentPointConstraint.h"
 #include "ComponentTransform.h"
@@ -62,12 +65,12 @@ bool ComponentPointConstraint::DrawInspector()
 
 void ComponentPointConstraint::RecreateConstraint()
 {
-	/*if (constraint)
+	if (constraint)
 	{
 		App->physics->RemoveConstraint(constraint);
 		delete constraint;
 		constraint = nullptr;
-	}*/
+	}
 
 	//ComponentRigidBody* c_rb_a = linked_go->GetComponent<ComponentRigidBody>();
 }

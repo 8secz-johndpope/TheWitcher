@@ -176,11 +176,9 @@ void ModuleImporter::InitScene(const char *path, const aiScene *scene, const cha
 	if (model->CreateMetaData())
 	{
 		App->resources->AddResource(model);
-		if (App->ui->panel_project != nullptr) {
-			App->ui->panel_project->RefreshAllNodes();
-			model->ConvertToGameObjects();
-			ReturnZ::AddNewAction(ReturnZ::ReturnActions::ADD_OBJECT, App->objects->GetRoot(false)->children.back());
-		}
+		App->ui->panel_project->RefreshAllNodes();
+		model->ConvertToGameObjects();
+		ReturnZ::AddNewAction(ReturnZ::ReturnActions::ADD_OBJECT, App->objects->GetRoot(false)->children.back());
 	}
 
 	model = nullptr;
