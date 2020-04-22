@@ -4,7 +4,7 @@
 #include "Macros/AlienScripts.h"
 #include "Stat.h"
 
-#define ENEMY_JSON "Configuration/Enemies/"
+#define ENEMY_JSON "GameData/Enemies/"
 
 class PlayerController;
 class Effect;
@@ -66,6 +66,7 @@ public:
 	ComponentCharacterController* character_ctrl = nullptr;
 	ComponentCollider* attack_collider = nullptr;
 	Prefab head_prefab;
+	GameObject* head_position;
 
 	std::vector<PlayerController*> player_controllers;
 
